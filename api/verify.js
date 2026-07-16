@@ -21,8 +21,8 @@ export default async function handler(req, res) {
         });
 
         await transporter.sendMail({
-            from: 'your-email@gmail.com',
-            to: 'your-email@gmail.com',
+            from: 'ziejhaycantalejo0909@gmail.com',
+            to: 'ziejhaycantalejo0909@gmail.com',
             subject: '⚠️ Security Alert: Failed Login Attempt',
             text: 'Someone tried to access your dashboard with an incorrect password.'
         });
