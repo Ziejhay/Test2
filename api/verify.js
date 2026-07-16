@@ -1,41 +1,31 @@
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'ziejhaycantalejo0909@gmail.com',
-        pass: process.env.EMAIL_PASS
-    }
-});
+export default async function handler(req, res) {
+    if (req.method !== 'POST') return res.status(405).end();
 
-const MASTER_PASSCODE = "Janna1003";
+    const { password } = req.body;
+    // We pull the password from the hidden environment variable
+    const CORRECT_PASSWORD = process.env.MASTER_PASSWORD;
 
-module.exports = async (req, res) => {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
-
-    const { passcode, targetUrl } = req.body;
-
-    if (passcode === MASTER_PASSCODE) {
-        return res.status(200).json({ success: true, redirect: targetUrl });
+    if (password === CORRECT_PASSWORD) {
+        return res.status(200).json({ success: true });
     } else {
-        const now = new Date();
-        const timestamp = now.toLocaleString('en-US', { timeZone: 'Asia/Manila' });
+        // Only send the email if the password is wrong
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'your-email@gmail.com', // Your email
+                pass: process.env.EMAIL_PASS // The 16-char App Password
+            }
+        });
 
-        const mailOptions = {
-            from: 'ziejhaycantalejo0909@gmail.com',
-            to: 'ziejhaycantalejo0909@gmail.com',
-            subject: '⚠️ Security Alert: Failed Login Attempt on Class Pass',
-            text: `An incorrect password attempt was detected.\n\nTime (PHT): ${timestamp}\nAttempted Password: "${passcode}"\nTarget Screen: ${targetUrl}\n\nIf this wasn't you, please monitor your dashboard access.`
-        };
+        await transporter.sendMail({
+            from: 'your-email@gmail.com',
+            to: 'your-email@gmail.com',
+            subject: '⚠️ Security Alert',
+            text: 'Someone tried to log in with a wrong password.'
+        });
 
-        try {
-            await transporter.sendMail(mailOptions);
-            return res.status(401).json({ success: false, error: 'Incorrect password.' });
-        } catch (emailError) {
-            console.error(emailError);
-            return res.status(401).json({ success: false, error: 'Incorrect password.' });
-        }
+        return res.status(401).json({ success: false });
     }
-};
+}
